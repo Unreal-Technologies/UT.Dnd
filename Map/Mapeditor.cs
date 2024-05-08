@@ -11,13 +11,14 @@ namespace UT.Dnd.Map
         public Mapeditor() 
             : base()
         {
-            this.Load += Mapeditor_Load;
+            Load += Mapeditor_Load;
         }
         #endregion //Constructors
 
         #region Public Methods
         private void Mapeditor_Load(object? sender, EventArgs e)
         {
+            Text = "Map Editor";
         }
 
         public override void OnMenuCreation()
@@ -36,7 +37,8 @@ namespace UT.Dnd.Map
             Mapeditor me = new()
             {
                 MdiParent = MdiParent,
-                FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
+                FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle,
+                Title = Title
             };
             me.Show();
         }
@@ -46,7 +48,8 @@ namespace UT.Dnd.Map
             Mapeditor me = new()
             {
                 MdiParent = MdiParent,
-                FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
+                FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle,
+                Title = Title
             };
             me.Show();
         }
