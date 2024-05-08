@@ -1,6 +1,7 @@
 ﻿using Shared.Controls;
 using Shared.Interfaces;
 using UT.Data.Attributes;
+using System.Windows.Forms;
 
 namespace UT.Dnd.Map
 {
@@ -11,16 +12,11 @@ namespace UT.Dnd.Map
         public Mapeditor() 
             : base()
         {
-            Load += Mapeditor_Load;
+            Text = "Map Editor";
         }
         #endregion //Constructors
 
         #region Public Methods
-        private void Mapeditor_Load(object? sender, EventArgs e)
-        {
-            Text = "Map Editor";
-        }
-
         public override void OnMenuCreation()
         {
             if (Root is IMainFormModlet && Root is IMainMenuContainer mmc)
@@ -34,24 +30,12 @@ namespace UT.Dnd.Map
         #region Private Methods
         private void OpenNew()
         {
-            Mapeditor me = new()
-            {
-                MdiParent = MdiParent,
-                FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle,
-                Title = Title
-            };
-            me.Show();
+            ShowMdi<Mapeditor>();
         }
 
         private void OpenEdit()
         {
-            Mapeditor me = new()
-            {
-                MdiParent = MdiParent,
-                FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle,
-                Title = Title
-            };
-            me.Show();
+            ShowMdi<Mapeditor>();
         }
         #endregion //Private Methods
     }
