@@ -1,15 +1,14 @@
 ﻿using Shared.Controls;
 using Shared.Interfaces;
 using UT.Data.Attributes;
-using System.Windows.Forms;
 
 namespace UT.Dnd.Map
 {
     [Position(int.MaxValue)]
-    public class Mapeditor : ExtendedMdiModletForm
+    public class MapEditor : ExtendedMdiModletForm
     {
         #region Constructors
-        public Mapeditor() 
+        public MapEditor() 
             : base()
         {
             Text = "Map Editor";
@@ -30,12 +29,12 @@ namespace UT.Dnd.Map
         #region Private Methods
         private void OpenNew()
         {
-            ShowMdi<Mapeditor>();
+            ShowMdi<MapEditor>();
         }
 
         private void OpenEdit()
         {
-            ShowMdi<Mapeditor>();
+            ShowMdi<MapEditor>();
         }
         #endregion //Private Methods
     }
