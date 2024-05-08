@@ -1,4 +1,5 @@
 ﻿using Shared.Controls;
+using Shared.Interfaces;
 using UT.Data.Attributes;
 
 namespace UT.Dnd.Map
@@ -17,8 +18,38 @@ namespace UT.Dnd.Map
         #region Public Methods
         private void Mapeditor_Load(object? sender, EventArgs e)
         {
-            throw new NotImplementedException();
+        }
+
+        public override void OnMenuCreation()
+        {
+            if (Root is IMainFormModlet && Root is IMainMenuContainer mmc)
+            {
+                mmc.MenuStack.Add(this, ["D&D", "Map Editor", "New"], OpenNew);
+                mmc.MenuStack.Add(this, ["D&D", "Map Editor", "Edit"], OpenEdit);
+            }
         }
         #endregion //Public Methods
+
+        #region Private Methods
+        private void OpenNew()
+        {
+            Mapeditor me = new()
+            {
+                MdiParent = MdiParent,
+                FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
+            };
+            me.Show();
+        }
+
+        private void OpenEdit()
+        {
+            Mapeditor me = new()
+            {
+                MdiParent = MdiParent,
+                FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
+            };
+            me.Show();
+        }
+        #endregion //Private Methods
     }
 }
