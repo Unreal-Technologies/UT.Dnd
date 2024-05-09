@@ -35,23 +35,15 @@ namespace UT.Dnd.Mapping
         }
         #endregion //Constructors
 
-        #region Properties
-        public States State
-        {
-            get { return state; }
-            set { state = value; UpdateState(); }
-        }
-        #endregion //Properties
-
         #region Enums
-        public enum States
+        private enum States
         {
-            New, List
+            New, List, Edit, Delete
         }
 
-        public enum Actions
+        private enum Actions
         {
-            CheckIfNameExists, CreateMap
+            CheckIfNameExists, CreateMap, ListMaps, SelectMap, DeleteMap
         }
         #endregion //Enums
 
@@ -67,21 +59,59 @@ namespace UT.Dnd.Mapping
         #endregion //Public Methods
 
         #region Private Methods
+        private void SetState(States state)
+        {
+            this.state = state;
+            UpdateState();
+        }
+
         private void MapEditor_Load(object? sender, EventArgs e)
         {
             gridviewList = new GridviewGuid();
-            gridviewList.SetColumns([new GridviewGuid.Column()
-            {
-                Text = "Name"
-            }]);
+            gridviewList.SetColumns([
+                new GridviewGuid.Column()
+                {
+                    Text = "Name"
+                },
+                new GridviewGuid.Column()
+                {
+                    Text = "Created"
+                },
+                new GridviewGuid.Column()
+                {
+                    Text = "Last Update"
+                }
+            ]);
             gridviewList.OnAdd += OnAdd;
+            gridviewList.OnEdit += OnEdit;
+            gridviewList.OnRemove += OnRemove;
 
             tabPage_List.Controls.Add(gridviewList);
         }
 
         private void OnAdd(Guid? id)
         {
-            State = States.New;
+            SetState(States.New);
+        }
+
+        private void OnEdit(Guid? id)
+        {
+            if (id != null && id != Guid.Empty)
+            {
+                mapId = id.Value;
+                SetState(States.Edit);
+                mapId = Guid.Empty;
+            }
+        }
+
+        private void OnRemove(Guid? id)
+        {
+            if (id != null && id != Guid.Empty)
+            {
+                mapId = id.Value;
+                SetState(States.Delete);
+                mapId = Guid.Empty;
+            }
         }
 
         private void UpdateState()
@@ -103,31 +133,110 @@ namespace UT.Dnd.Mapping
                         tabControl.SelectTab(tabPage_List);
                         RenderList();
                         break;
+                    case States.Delete:
+                        InfoBar.Subtitle = "Delete: " + mapId.ToString();
+                        tabControl.SelectTab(tabPage_delete);
+                        RenderDelete();
+                        break;
+                    case States.Edit:
+                        InfoBar.Subtitle = "Edit: " + mapId.ToString();
+                        tabControl.SelectTab(tabPage_edit);
+                        break;
                 }
             }
         }
 
+        private void RenderDelete()
+        {
+            if (InfoBar == null)
+            {
+                return;
+            }
+
+            Map? map = ModletStream.GetContent<bool, Map>(
+                Client?.Send(
+                    ModletStream.CreatePacket(
+                        Actions.SelectMap,
+                        mapId
+                    ),
+                    ModletCommands.Commands.Action,
+                    this
+                )
+            );
+
+            if (map == null)
+            {
+                return;
+            }
+
+            tabPage_delete_lbl_message.Text = string.Format(tabPage_delete_lbl_message.Text, map.Name);
+            tabPage_delete_tb_id.Text = mapId.ToString();
+
+            InfoBar.Subtitle = tabPage_delete_lbl_message.Text;
+        }
+
         private void RenderList()
         {
+            if (gridviewList == null)
+            {
+                return;
+            }
 
+            if (
+                Session != null &&
+                Session.TryGetValue("User-Authentication", out object? value) &&
+                value is User user
+            )
+            {
+                Map[]? maps = ModletStream.GetContent<bool, Map[]>(
+                    Client?.Send(
+                        ModletStream.CreatePacket(
+                            Actions.ListMaps,
+                            user.Id
+                        ),
+                        ModletCommands.Commands.Action,
+                        this
+                    )
+                );
+                if (maps != null)
+                {
+                    gridviewList.SetRows([]);
+                    foreach (Map map in maps)
+                    {
+                        Gridview<Guid>.Row row = new()
+                        {
+                            ID = map.Id
+                        };
+
+                        row.Cells.Add(new Gridview<Guid>.Cell()
+                        {
+                            Text = map.Name
+                        });
+                        row.Cells.Add(new Gridview<Guid>.Cell()
+                        {
+                            Text = map.Created.ToString("dd-MM-yyyy HH:mm")
+                        });
+                        row.Cells.Add(new Gridview<Guid>.Cell()
+                        {
+                            Text = map.TransStartDate.ToString("dd-MM-yyyy HH:mm")
+                        });
+
+                        gridviewList.AddRow(row);
+                    }
+                }
+            }
         }
 
         private void OpenNew()
         {
             MapEditor? me = ShowMdi<MapEditor>();
-            if (me != null)
-            {
-                me.State = States.New;
-            }
+            me?.SetState(States.New);
         }
 
         private void OpenEdit()
         {
             MapEditor? me = ShowMdi<MapEditor>();
-            if (me != null)
-            {
-                me.State = States.List;
-            }
+            me?.SetState(States.List);
         }
 
         private void TabPage_add_btn_save_Click(object sender, EventArgs e)
@@ -164,11 +273,32 @@ namespace UT.Dnd.Mapping
                         this
                     )
                 );
-                if(map != null)
+                if (map != null)
                 {
-                    State = States.List;
+                    SetState(States.List);
                 }
             }
+        }
+
+        private void TabPage_delete_btn_yes_Click(object sender, EventArgs e)
+        {
+            Guid mapId = Guid.Parse(tabPage_delete_tb_id.Text);
+            ModletStream.GetContent<bool, Map>(
+                Client?.Send(
+                    ModletStream.CreatePacket(
+                        Actions.DeleteMap,
+                        mapId
+                    ),
+                    ModletCommands.Commands.Action,
+                    this
+                )
+            );
+            SetState(States.List);
+        }
+
+        private void TabPage_delete_btn_no_Click(object sender, EventArgs e)
+        {
+            SetState(States.List);
         }
 
         public override byte[]? OnLocalServerAction(byte[]? stream, IPAddress ip)
@@ -187,27 +317,75 @@ namespace UT.Dnd.Mapping
                     return OnLocalServerAction_CheckIfNameExists(dmc, stream);
                 case Actions.CreateMap:
                     return OnLocalServerAction_CreateMap(dmc, smc, stream);
+                case Actions.ListMaps:
+                    return OnLocalServerAction_ListMaps(dmc, stream);
+                case Actions.SelectMap:
+                    return OnLocalServerAction_SelectMap(dmc, stream);
+                case Actions.DeleteMap:
+                    OnLocalServerAction_DeleteMap(dmc, stream);
+                    return null;
                 default:
                     break;
             }
             return null;
         }
 
-        private static byte[]? OnLocalServerAction_CheckIfNameExists(DndModContext context, byte[]? stream)
+        private static void OnLocalServerAction_DeleteMap(DndModContext dmc, byte[]? stream)
+        {
+            Guid mapId = ModletStream.GetContent<Actions, Guid>(stream);
+            if (mapId == Guid.Empty)
+            {
+                return;
+            }
+
+            Map? map = dmc.Maps.FirstOrDefault(x => x.Id == mapId);
+            if (map != null)
+            {
+                dmc.Remove(map);
+                dmc.SaveChanges();
+            }
+        }
+
+        private static byte[]? OnLocalServerAction_SelectMap(DndModContext dmc, byte[]? stream)
+        {
+            Guid mapId = ModletStream.GetContent<Actions, Guid>(stream);
+            if (mapId == Guid.Empty)
+            {
+                return null;
+            }
+
+            Map? map = dmc.Maps.FirstOrDefault(x => x.Id == mapId);
+            return ModletStream.CreatePacket(true, map);
+        }
+
+        private static byte[]? OnLocalServerAction_ListMaps(DndModContext dmc, byte[]? stream)
+        {
+            Guid userId = ModletStream.GetContent<Actions, Guid>(stream);
+            if (userId == Guid.Empty)
+            {
+                return null;
+            }
+
+            Map[] maps = [.. dmc.Maps.Where(x => x.User != null && x.User.Id == userId)];
+            return ModletStream.CreatePacket(true, maps);
+        }
+
+        private static byte[]? OnLocalServerAction_CheckIfNameExists(DndModContext dmc, byte[]? stream)
         {
             Tuple<Guid, string>? tuple = ModletStream.GetContent<Actions, Tuple<Guid, string>>(stream);
             if (tuple == null)
             {
                 return null;
             }
+
             Guid userId = tuple.Item1;
-            if(userId == Guid.Empty)
+            if (userId == Guid.Empty)
             {
                 return null;
             }
 
             string name = tuple.Item2;
-            Map? map = context.Maps.Where(x => x.User != null && x.User.Id == userId && x.Name == name).FirstOrDefault();
+            Map? map = dmc.Maps.Where(x => x.User != null && x.User.Id == userId && x.Name == name).FirstOrDefault();
 
             return ModletStream.CreatePacket(true, map);
         }
@@ -219,6 +397,7 @@ namespace UT.Dnd.Mapping
             {
                 return null;
             }
+
             Guid userId = tuple.Item1;
             if (userId == Guid.Empty)
             {
@@ -226,7 +405,7 @@ namespace UT.Dnd.Mapping
             }
 
             User? user = smc.Users.FirstOrDefault(x => x.Id == userId);
-            if(user == null)
+            if (user == null)
             {
                 return null;
             }
@@ -236,7 +415,8 @@ namespace UT.Dnd.Mapping
             Map map = new()
             {
                 Name = name,
-                User = user
+                User = user,
+                Created = DateTime.Now
             };
 
             dmc.Add(map);
@@ -245,7 +425,5 @@ namespace UT.Dnd.Mapping
             return ModletStream.CreatePacket(true, map);
         }
         #endregion //Private Methods
-
-
     }
 }

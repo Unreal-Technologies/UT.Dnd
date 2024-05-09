@@ -34,17 +34,26 @@ namespace UT.Dnd.Mapping
             tabControl = new System.Windows.Forms.TabControl();
             tabPage_List = new System.Windows.Forms.TabPage();
             tabPage_add = new System.Windows.Forms.TabPage();
-            tabPage_add_lbl_name = new System.Windows.Forms.Label();
-            tabPage_add_vtb_name = new ValidatedTextBox();
             tabPage_add_btn_save = new System.Windows.Forms.Button();
+            tabPage_add_vtb_name = new ValidatedTextBox();
+            tabPage_add_lbl_name = new System.Windows.Forms.Label();
+            tabPage_edit = new System.Windows.Forms.TabPage();
+            tabPage_delete = new System.Windows.Forms.TabPage();
+            tabPage_delete_tb_id = new System.Windows.Forms.TextBox();
+            tabPage_delete_btn_no = new System.Windows.Forms.Button();
+            tabPage_delete_btn_yes = new System.Windows.Forms.Button();
+            tabPage_delete_lbl_message = new System.Windows.Forms.Label();
             tabControl.SuspendLayout();
             tabPage_add.SuspendLayout();
+            tabPage_delete.SuspendLayout();
             SuspendLayout();
             // 
             // tabControl
             // 
             tabControl.Controls.Add(tabPage_List);
             tabControl.Controls.Add(tabPage_add);
+            tabControl.Controls.Add(tabPage_edit);
+            tabControl.Controls.Add(tabPage_delete);
             tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             tabControl.Location = new Point(0, 50);
             tabControl.Name = "tabControl";
@@ -75,23 +84,6 @@ namespace UT.Dnd.Mapping
             tabPage_add.Text = "Add";
             tabPage_add.UseVisualStyleBackColor = true;
             // 
-            // tabPage_add_lbl_name
-            // 
-            tabPage_add_lbl_name.AutoSize = true;
-            tabPage_add_lbl_name.Location = new Point(23, 21);
-            tabPage_add_lbl_name.Name = "tabPage_add_lbl_name";
-            tabPage_add_lbl_name.Size = new Size(64, 20);
-            tabPage_add_lbl_name.TabIndex = 0;
-            tabPage_add_lbl_name.Text = "Name:";
-            // 
-            // tabPage_add_vtb_name
-            // 
-            tabPage_add_vtb_name.IsRequired = true;
-            tabPage_add_vtb_name.Location = new Point(93, 18);
-            tabPage_add_vtb_name.Name = "tabPage_add_vtb_name";
-            tabPage_add_vtb_name.Size = new Size(200, 23);
-            tabPage_add_vtb_name.TabIndex = 1;
-            // 
             // tabPage_add_btn_save
             // 
             tabPage_add_btn_save.Location = new Point(93, 47);
@@ -102,6 +94,82 @@ namespace UT.Dnd.Mapping
             tabPage_add_btn_save.UseVisualStyleBackColor = true;
             tabPage_add_btn_save.Click += TabPage_add_btn_save_Click;
             // 
+            // tabPage_add_vtb_name
+            // 
+            tabPage_add_vtb_name.IsRequired = true;
+            tabPage_add_vtb_name.Location = new Point(93, 18);
+            tabPage_add_vtb_name.Name = "tabPage_add_vtb_name";
+            tabPage_add_vtb_name.Size = new Size(200, 23);
+            tabPage_add_vtb_name.TabIndex = 1;
+            // 
+            // tabPage_add_lbl_name
+            // 
+            tabPage_add_lbl_name.AutoSize = true;
+            tabPage_add_lbl_name.Location = new Point(23, 21);
+            tabPage_add_lbl_name.Name = "tabPage_add_lbl_name";
+            tabPage_add_lbl_name.Size = new Size(64, 20);
+            tabPage_add_lbl_name.TabIndex = 0;
+            tabPage_add_lbl_name.Text = "Name:";
+            // 
+            // tabPage_edit
+            // 
+            tabPage_edit.Location = new Point(4, 29);
+            tabPage_edit.Name = "tabPage_edit";
+            tabPage_edit.Size = new Size(2032, 1072);
+            tabPage_edit.TabIndex = 2;
+            tabPage_edit.Text = "Edit";
+            tabPage_edit.UseVisualStyleBackColor = true;
+            // 
+            // tabPage_delete
+            // 
+            tabPage_delete.Controls.Add(tabPage_delete_tb_id);
+            tabPage_delete.Controls.Add(tabPage_delete_btn_no);
+            tabPage_delete.Controls.Add(tabPage_delete_btn_yes);
+            tabPage_delete.Controls.Add(tabPage_delete_lbl_message);
+            tabPage_delete.Location = new Point(4, 29);
+            tabPage_delete.Name = "tabPage_delete";
+            tabPage_delete.Size = new Size(2032, 1072);
+            tabPage_delete.TabIndex = 3;
+            tabPage_delete.Text = "Delete";
+            tabPage_delete.UseVisualStyleBackColor = true;
+            // 
+            // tabPage_delete_tb_id
+            // 
+            tabPage_delete_tb_id.Location = new Point(8, 77);
+            tabPage_delete_tb_id.Name = "tabPage_delete_tb_id";
+            tabPage_delete_tb_id.Size = new Size(150, 28);
+            tabPage_delete_tb_id.TabIndex = 3;
+            tabPage_delete_tb_id.Visible = false;
+            // 
+            // tabPage_delete_btn_no
+            // 
+            tabPage_delete_btn_no.Location = new Point(126, 37);
+            tabPage_delete_btn_no.Name = "tabPage_delete_btn_no";
+            tabPage_delete_btn_no.Size = new Size(112, 34);
+            tabPage_delete_btn_no.TabIndex = 2;
+            tabPage_delete_btn_no.Text = "No";
+            tabPage_delete_btn_no.UseVisualStyleBackColor = true;
+            tabPage_delete_btn_no.Click += TabPage_delete_btn_no_Click;
+            // 
+            // tabPage_delete_btn_yes
+            // 
+            tabPage_delete_btn_yes.Location = new Point(8, 37);
+            tabPage_delete_btn_yes.Name = "tabPage_delete_btn_yes";
+            tabPage_delete_btn_yes.Size = new Size(112, 34);
+            tabPage_delete_btn_yes.TabIndex = 1;
+            tabPage_delete_btn_yes.Text = "Yes";
+            tabPage_delete_btn_yes.UseVisualStyleBackColor = true;
+            tabPage_delete_btn_yes.Click += TabPage_delete_btn_yes_Click;
+            // 
+            // tabPage_delete_lbl_message
+            // 
+            tabPage_delete_lbl_message.AutoSize = true;
+            tabPage_delete_lbl_message.Location = new Point(8, 14);
+            tabPage_delete_lbl_message.Name = "tabPage_delete_lbl_message";
+            tabPage_delete_lbl_message.Size = new Size(416, 20);
+            tabPage_delete_lbl_message.TabIndex = 0;
+            tabPage_delete_lbl_message.Text = "Are you sure you want to delete \"{0}\"";
+            // 
             // MapEditor
             // 
             ClientSize = new Size(2040, 1155);
@@ -111,6 +179,8 @@ namespace UT.Dnd.Mapping
             tabControl.ResumeLayout(false);
             tabPage_add.ResumeLayout(false);
             tabPage_add.PerformLayout();
+            tabPage_delete.ResumeLayout(false);
+            tabPage_delete.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -122,5 +192,11 @@ namespace UT.Dnd.Mapping
         private ValidatedTextBox tabPage_add_vtb_name;
         private System.Windows.Forms.Label tabPage_add_lbl_name;
         private System.Windows.Forms.Button tabPage_add_btn_save;
+        private System.Windows.Forms.TabPage tabPage_edit;
+        private System.Windows.Forms.TabPage tabPage_delete;
+        private System.Windows.Forms.Label tabPage_delete_lbl_message;
+        private System.Windows.Forms.Button tabPage_delete_btn_no;
+        private System.Windows.Forms.Button tabPage_delete_btn_yes;
+        private System.Windows.Forms.TextBox tabPage_delete_tb_id;
     }
 }

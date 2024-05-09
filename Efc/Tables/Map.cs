@@ -15,6 +15,7 @@ namespace UT.Dnd.Efc.Tables
         public virtual User? User { get; set; }
         [Required]
         public string? Name { get; set; }
+        public DateTime Created { get; set; }
         public DateTime TransStartDate { get; set; }
         #endregion //Fields
         #endregion //Properties

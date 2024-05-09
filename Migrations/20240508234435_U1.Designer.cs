@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shared.Efc;
 
@@ -10,9 +11,11 @@ using Shared.Efc;
 namespace UT.Dnd.Migrations
 {
     [DbContext(typeof(DndModContext))]
-    partial class DndModContextModelSnapshot : ModelSnapshot
+    [Migration("20240508234435_U1")]
+    partial class U1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
