@@ -12,7 +12,7 @@ namespace UT.Dnd.Efc.Tables
         public Guid Id { get; set; }
         [Required]
         public virtual User? User { get; set; }
-        [Required]
+        [Required, MaxLength(64)]
         public string? Name { get; set; }
         public DateTime Created { get; set; }
         public DateTime TransStartDate { get; set; }

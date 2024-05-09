@@ -4,9 +4,7 @@ using Shared.Efc;
 using Shared.Efc.Tables;
 using Shared.Interfaces;
 using Shared.Modules;
-using System.Drawing;
 using System.Net;
-using System.Windows.Forms;
 using UT.Data.Attributes;
 using UT.Data.Controls;
 using UT.Data.Controls.Custom;
@@ -36,7 +34,7 @@ namespace UT.Dnd.Modules.Mapping
         #endregion //Constructors
 
         #region Enums
-        private enum States
+        public enum States
         {
             New, List, Edit, Delete
         }
@@ -48,22 +46,22 @@ namespace UT.Dnd.Modules.Mapping
         #endregion //Enums
 
         #region Public Methods
+        public void SetState(States state)
+        {
+            this.state = state;
+            UpdateState();
+        }
+
         public override void OnMenuCreation()
         {
             if (Root is IMainFormModlet && Root is IMainMenuContainer mmc)
             {
-                mmc.MenuStack.Add(this, ["D&D", "Map Editor", "New"], OpenNew);
-                mmc.MenuStack.Add(this, ["D&D", "Map Editor", "Edit"], OpenEdit);
+                mmc.MenuStack.Add(this, ["D&D", "Map Editor"], OpenEdit);
             }
         }
         #endregion //Public Methods
 
         #region Private Methods
-        private void SetState(States state)
-        {
-            this.state = state;
-            UpdateState();
-        }
 
         private void MapEditor_Load(object? sender, EventArgs e)
         {
@@ -120,29 +118,31 @@ namespace UT.Dnd.Modules.Mapping
             tabControl.ItemSize = new Size(0, 1);
             tabControl.SizeMode = TabSizeMode.Fixed;
 
-            if (InfoBar != null)
+            if (InfoBar == null)
             {
-                switch (state)
-                {
-                    case States.New:
-                        InfoBar.Subtitle = "* new";
-                        tabControl.SelectTab(tabPage_add);
-                        break;
-                    case States.List:
-                        InfoBar.Subtitle = "* Select Map";
-                        tabControl.SelectTab(tabPage_List);
-                        RenderList();
-                        break;
-                    case States.Delete:
-                        InfoBar.Subtitle = "Delete: " + tempMapId.ToString();
-                        tabControl.SelectTab(tabPage_delete);
-                        RenderDelete();
-                        break;
-                    case States.Edit:
-                        InfoBar.Subtitle = "Edit: " + tempMapId.ToString();
-                        tabControl.SelectTab(tabPage_edit);
-                        break;
-                }
+                return;
+            }
+
+            switch (state)
+            {
+                case States.New:
+                    InfoBar.Subtitle = "* new";
+                    tabControl.SelectTab(tabPage_add);
+                    break;
+                case States.List:
+                    InfoBar.Subtitle = "* Select Map";
+                    tabControl.SelectTab(tabPage_List);
+                    RenderList();
+                    break;
+                case States.Delete:
+                    InfoBar.Subtitle = "Delete: " + tempMapId.ToString();
+                    tabControl.SelectTab(tabPage_delete);
+                    RenderDelete();
+                    break;
+                case States.Edit:
+                    InfoBar.Subtitle = "Edit: " + tempMapId.ToString();
+                    tabControl.SelectTab(tabPage_edit);
+                    break;
             }
         }
 
@@ -225,12 +225,6 @@ namespace UT.Dnd.Modules.Mapping
                     }
                 }
             }
-        }
-
-        private void OpenNew()
-        {
-            MapEditor? me = ShowMdi<MapEditor>();
-            me?.SetState(States.New);
         }
 
         private void OpenEdit()
@@ -424,5 +418,11 @@ namespace UT.Dnd.Modules.Mapping
             return ModletStream.CreatePacket(true, map);
         }
         #endregion //Private Methods
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Shared.Modules.Content? cu = ShowMdi<Shared.Modules.Content>();
+            cu?.SetState(Shared.Modules.Content.States.Upload);
+        }
     }
 }
