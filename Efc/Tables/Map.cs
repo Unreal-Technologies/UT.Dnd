@@ -8,7 +8,6 @@ namespace UT.Dnd.Efc.Tables
     public class Map
     {
         #region Properties
-        #region Fields
         [Required, Key]
         public Guid Id { get; set; }
         [Required]
@@ -17,7 +16,13 @@ namespace UT.Dnd.Efc.Tables
         public string? Name { get; set; }
         public DateTime Created { get; set; }
         public DateTime TransStartDate { get; set; }
-        #endregion //Fields
         #endregion //Properties
+
+        #region Constructors
+        public Map()
+        {
+            Created = DateTime.Now;
+        }
+        #endregion //Constructors
     }
 }

@@ -13,7 +13,7 @@ using UT.Data.Controls.Custom;
 using UT.Data.Modlet;
 using UT.Dnd.Efc.Tables;
 
-namespace UT.Dnd.Mapping
+namespace UT.Dnd.Modules.Mapping
 {
     [Position(int.MaxValue)]
     public partial class MapEditor : ExtendedMdiModletForm
@@ -21,7 +21,7 @@ namespace UT.Dnd.Mapping
         #region Members
         private States state;
         private GridviewGuid? gridviewList;
-        private Guid mapId = Guid.Empty;
+        private Guid tempMapId = Guid.Empty;
         #endregion //Members
 
         #region Constructors
@@ -98,9 +98,9 @@ namespace UT.Dnd.Mapping
         {
             if (id != null && id != Guid.Empty)
             {
-                mapId = id.Value;
+                tempMapId = id.Value;
                 SetState(States.Edit);
-                mapId = Guid.Empty;
+                tempMapId = Guid.Empty;
             }
         }
 
@@ -108,9 +108,9 @@ namespace UT.Dnd.Mapping
         {
             if (id != null && id != Guid.Empty)
             {
-                mapId = id.Value;
+                tempMapId = id.Value;
                 SetState(States.Delete);
-                mapId = Guid.Empty;
+                tempMapId = Guid.Empty;
             }
         }
 
@@ -134,12 +134,12 @@ namespace UT.Dnd.Mapping
                         RenderList();
                         break;
                     case States.Delete:
-                        InfoBar.Subtitle = "Delete: " + mapId.ToString();
+                        InfoBar.Subtitle = "Delete: " + tempMapId.ToString();
                         tabControl.SelectTab(tabPage_delete);
                         RenderDelete();
                         break;
                     case States.Edit:
-                        InfoBar.Subtitle = "Edit: " + mapId.ToString();
+                        InfoBar.Subtitle = "Edit: " + tempMapId.ToString();
                         tabControl.SelectTab(tabPage_edit);
                         break;
                 }
@@ -157,7 +157,7 @@ namespace UT.Dnd.Mapping
                 Client?.Send(
                     ModletStream.CreatePacket(
                         Actions.SelectMap,
-                        mapId
+                        tempMapId
                     ),
                     ModletCommands.Commands.Action,
                     this
@@ -170,7 +170,7 @@ namespace UT.Dnd.Mapping
             }
 
             tabPage_delete_lbl_message.Text = string.Format(tabPage_delete_lbl_message.Text, map.Name);
-            tabPage_delete_tb_id.Text = mapId.ToString();
+            tabPage_delete_tb_id.Text = tempMapId.ToString();
 
             InfoBar.Subtitle = tabPage_delete_lbl_message.Text;
         }
@@ -415,8 +415,7 @@ namespace UT.Dnd.Mapping
             Map map = new()
             {
                 Name = name,
-                User = user,
-                Created = DateTime.Now
+                User = user
             };
 
             dmc.Add(map);

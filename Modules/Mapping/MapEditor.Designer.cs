@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using UT.Data.Controls.Validated;
 
-namespace UT.Dnd.Mapping
+namespace UT.Dnd.Modules.Mapping
 {
     public partial class MapEditor
     {
