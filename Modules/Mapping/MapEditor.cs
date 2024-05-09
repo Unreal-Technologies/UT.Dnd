@@ -59,6 +59,35 @@ namespace UT.Dnd.Modules.Mapping
                 mmc.MenuStack.Add(this, ["D&D", "Map Editor"], OpenEdit);
             }
         }
+
+        public override byte[]? OnLocalServerAction(byte[]? stream, IPAddress ip)
+        {
+            DbContext? modContext = Context?.Select(this);
+            DbContext? sharedContext = Context == null ? null : Array.Find(Context.List, x => x.GetType() == typeof(SharedModContext));
+            Actions? action = ModletStream.GetInputType<Actions>(stream);
+            if (modContext is not DndModContext dmc || sharedContext is not SharedModContext smc || action == null)
+            {
+                return null;
+            }
+
+            switch (action)
+            {
+                case Actions.CheckIfNameExists:
+                    return OnLocalServerAction_CheckIfNameExists(dmc, stream);
+                case Actions.CreateMap:
+                    return OnLocalServerAction_CreateMap(dmc, smc, stream);
+                case Actions.ListMaps:
+                    return OnLocalServerAction_ListMaps(dmc, stream);
+                case Actions.SelectMap:
+                    return OnLocalServerAction_SelectMap(dmc, stream);
+                case Actions.DeleteMap:
+                    OnLocalServerAction_DeleteMap(dmc, stream);
+                    return null;
+                default:
+                    break;
+            }
+            return null;
+        }
         #endregion //Public Methods
 
         #region Private Methods
@@ -200,7 +229,7 @@ namespace UT.Dnd.Modules.Mapping
                 );
                 if (maps != null)
                 {
-                    gridviewList.SetRows([]);
+                    gridviewList.Clear();
                     foreach (Map map in maps)
                     {
                         Gridview<Guid>.Row row = new()
@@ -223,6 +252,7 @@ namespace UT.Dnd.Modules.Mapping
 
                         gridviewList.AddRow(row);
                     }
+                    gridviewList.Render();
                 }
             }
         }
@@ -293,35 +323,6 @@ namespace UT.Dnd.Modules.Mapping
         private void TabPage_delete_btn_no_Click(object sender, EventArgs e)
         {
             SetState(States.List);
-        }
-
-        public override byte[]? OnLocalServerAction(byte[]? stream, IPAddress ip)
-        {
-            DbContext? modContext = Context?.Select(this);
-            DbContext? sharedContext = Context == null ? null : Array.Find(Context.List, x => x.GetType() == typeof(SharedModContext));
-            Actions? action = ModletStream.GetInputType<Actions>(stream);
-            if (modContext is not DndModContext dmc || sharedContext is not SharedModContext smc || action == null)
-            {
-                return null;
-            }
-
-            switch (action)
-            {
-                case Actions.CheckIfNameExists:
-                    return OnLocalServerAction_CheckIfNameExists(dmc, stream);
-                case Actions.CreateMap:
-                    return OnLocalServerAction_CreateMap(dmc, smc, stream);
-                case Actions.ListMaps:
-                    return OnLocalServerAction_ListMaps(dmc, stream);
-                case Actions.SelectMap:
-                    return OnLocalServerAction_SelectMap(dmc, stream);
-                case Actions.DeleteMap:
-                    OnLocalServerAction_DeleteMap(dmc, stream);
-                    return null;
-                default:
-                    break;
-            }
-            return null;
         }
 
         private static void OnLocalServerAction_DeleteMap(DndModContext dmc, byte[]? stream)
