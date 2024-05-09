@@ -18,7 +18,7 @@ namespace UT.Dnd.Modules.Mapping
     {
         #region Members
         private States state;
-        private GridviewGuid? gridviewList;
+        private Gridview<Map>? gridviewList;
         private Guid tempMapId = Guid.Empty;
         #endregion //Members
 
@@ -94,20 +94,11 @@ namespace UT.Dnd.Modules.Mapping
 
         private void MapEditor_Load(object? sender, EventArgs e)
         {
-            gridviewList = new GridviewGuid();
+            gridviewList = new Gridview<Map>(x => x.Id);
             gridviewList.SetColumns([
-                new GridviewGuid.Column()
-                {
-                    Text = "Name"
-                },
-                new GridviewGuid.Column()
-                {
-                    Text = "Created"
-                },
-                new GridviewGuid.Column()
-                {
-                    Text = "Last Update"
-                }
+                gridviewList.Column("Name", x => x.Name ?? ""),
+                gridviewList.Column("Created", x => x.Created.ToString("dd-MM-yyyy HH:mm")),
+                gridviewList.Column("Last Update", x => x.TransStartDate.ToString("dd-MM-yyyy HH:mm"))
             ]);
             gridviewList.OnAdd += OnAdd;
             gridviewList.OnEdit += OnEdit;
@@ -229,30 +220,7 @@ namespace UT.Dnd.Modules.Mapping
                 );
                 if (maps != null)
                 {
-                    gridviewList.Clear();
-                    foreach (Map map in maps)
-                    {
-                        Gridview<Guid>.Row row = new()
-                        {
-                            ID = map.Id
-                        };
-
-                        row.Cells.Add(new Gridview<Guid>.Cell()
-                        {
-                            Text = map.Name
-                        });
-                        row.Cells.Add(new Gridview<Guid>.Cell()
-                        {
-                            Text = map.Created.ToString("dd-MM-yyyy HH:mm")
-                        });
-                        row.Cells.Add(new Gridview<Guid>.Cell()
-                        {
-                            Text = map.TransStartDate.ToString("dd-MM-yyyy HH:mm")
-                        });
-
-                        gridviewList.AddRow(row);
-                    }
-                    gridviewList.Render();
+                    gridviewList.Dataset(maps);
                 }
             }
         }
