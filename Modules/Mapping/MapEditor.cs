@@ -1,14 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Shared.Controls;
-using Shared.Efc;
+﻿using Shared.Controls;
 using Shared.Efc.Tables;
 using Shared.Interfaces;
-using Shared.Modules;
 using System.Net;
 using UT.Data.Attributes;
 using UT.Data.Controls;
 using UT.Data.Controls.Custom;
-using UT.Data.Modlet;
 using UT.Dnd.Efc.Tables;
 
 namespace UT.Dnd.Modules.Mapping
@@ -38,11 +34,6 @@ namespace UT.Dnd.Modules.Mapping
         {
             New, List, Edit, Delete
         }
-
-        private enum Actions
-        {
-            CheckIfNameExists, CreateMap, ListMaps, SelectMap, DeleteMap
-        }
         #endregion //Enums
 
         #region Public Methods
@@ -62,31 +53,7 @@ namespace UT.Dnd.Modules.Mapping
 
         public override byte[]? OnLocalServerAction(byte[]? stream, IPAddress ip)
         {
-            DbContext? modContext = Context?.Select(this);
-            DbContext? sharedContext = Context == null ? null : Array.Find(Context.List, x => x.GetType() == typeof(SharedModContext));
-            Actions? action = ModletStream.GetInputType<Actions>(stream);
-            if (modContext is not DndModContext dmc || sharedContext is not SharedModContext smc || action == null)
-            {
-                return null;
-            }
-
-            switch (action)
-            {
-                case Actions.CheckIfNameExists:
-                    return OnLocalServerAction_CheckIfNameExists(dmc, stream);
-                case Actions.CreateMap:
-                    return OnLocalServerAction_CreateMap(dmc, smc, stream);
-                case Actions.ListMaps:
-                    return OnLocalServerAction_ListMaps(dmc, stream);
-                case Actions.SelectMap:
-                    return OnLocalServerAction_SelectMap(dmc, stream);
-                case Actions.DeleteMap:
-                    OnLocalServerAction_DeleteMap(dmc, stream);
-                    return null;
-                default:
-                    break;
-            }
-            return null;
+            return Efc.DataHandler.OnLocalServerAction(stream, this, Context);
         }
         #endregion //Public Methods
 
@@ -101,7 +68,7 @@ namespace UT.Dnd.Modules.Mapping
                 gridviewList.Column("Last Update", x => x.TransStartDate.ToString("dd-MM-yyyy HH:mm"))
             ]);
             gridviewList.OnAdd += OnAdd;
-            gridviewList.OnEdit += OnEdit;
+            //gridviewList.OnEdit += OnEdit;
             gridviewList.OnRemove += OnRemove;
 
             tabPage_List.Controls.Add(gridviewList);
@@ -173,16 +140,7 @@ namespace UT.Dnd.Modules.Mapping
                 return;
             }
 
-            Map? map = ModletStream.GetContent<bool, Map>(
-                Client?.Send(
-                    ModletStream.CreatePacket(
-                        Actions.SelectMap,
-                        tempMapId
-                    ),
-                    ModletCommands.Commands.Action,
-                    this
-                )
-            );
+            Map? map = Request<Map, Efc.DataHandler.DndActions, Guid>(Efc.DataHandler.DndActions.SelectMapById, tempMapId);
 
             if (map == null)
             {
@@ -208,16 +166,7 @@ namespace UT.Dnd.Modules.Mapping
                 value is User user
             )
             {
-                Map[]? maps = ModletStream.GetContent<bool, Map[]>(
-                    Client?.Send(
-                        ModletStream.CreatePacket(
-                            Actions.ListMaps,
-                            user.Id
-                        ),
-                        ModletCommands.Commands.Action,
-                        this
-                    )
-                );
+                Map[]? maps = Request<Map[], Efc.DataHandler.DndActions, Guid>(Efc.DataHandler.DndActions.ListMapsByUserId, user.Id);
                 if (maps != null)
                 {
                     gridviewList.Dataset(maps);
@@ -245,26 +194,8 @@ namespace UT.Dnd.Modules.Mapping
             )
             {
                 Tuple<Guid, string> data = new(user.Id, tabPage_add_vtb_name.Control.Text);
-                Map? map = ModletStream.GetContent<bool, Map>(
-                    Client?.Send(
-                        ModletStream.CreatePacket(
-                            Actions.CheckIfNameExists,
-                            data
-                        ),
-                        ModletCommands.Commands.Action,
-                        this
-                    )
-                );
-                map ??= ModletStream.GetContent<bool, Map>(
-                    Client?.Send(
-                        ModletStream.CreatePacket(
-                            Actions.CreateMap,
-                            data
-                        ),
-                        ModletCommands.Commands.Action,
-                        this
-                    )
-                );
+                Map? map = Request<Map, Efc.DataHandler.DndActions, Tuple<Guid, string>>(Efc.DataHandler.DndActions.SelectMapByNameAndUserId, data);
+                map ??= Request<Map, Efc.DataHandler.DndActions, Tuple<Guid, string>>(Efc.DataHandler.DndActions.CreateMapByNameAndUserId, data);
                 if (map != null)
                 {
                     SetState(States.List);
@@ -275,116 +206,13 @@ namespace UT.Dnd.Modules.Mapping
         private void TabPage_delete_btn_yes_Click(object sender, EventArgs e)
         {
             Guid mapId = Guid.Parse(tabPage_delete_tb_id.Text);
-            ModletStream.GetContent<bool, Map>(
-                Client?.Send(
-                    ModletStream.CreatePacket(
-                        Actions.DeleteMap,
-                        mapId
-                    ),
-                    ModletCommands.Commands.Action,
-                    this
-                )
-            );
+            Request<Map, Efc.DataHandler.DndActions, Guid>(Efc.DataHandler.DndActions.DeleteMapById, mapId);
             SetState(States.List);
         }
 
         private void TabPage_delete_btn_no_Click(object sender, EventArgs e)
         {
             SetState(States.List);
-        }
-
-        private static void OnLocalServerAction_DeleteMap(DndModContext dmc, byte[]? stream)
-        {
-            Guid mapId = ModletStream.GetContent<Actions, Guid>(stream);
-            if (mapId == Guid.Empty)
-            {
-                return;
-            }
-
-            Map? map = dmc.Maps.FirstOrDefault(x => x.Id == mapId);
-            if (map != null)
-            {
-                dmc.Remove(map);
-                dmc.SaveChanges();
-            }
-        }
-
-        private static byte[]? OnLocalServerAction_SelectMap(DndModContext dmc, byte[]? stream)
-        {
-            Guid mapId = ModletStream.GetContent<Actions, Guid>(stream);
-            if (mapId == Guid.Empty)
-            {
-                return null;
-            }
-
-            Map? map = dmc.Maps.FirstOrDefault(x => x.Id == mapId);
-            return ModletStream.CreatePacket(true, map);
-        }
-
-        private static byte[]? OnLocalServerAction_ListMaps(DndModContext dmc, byte[]? stream)
-        {
-            Guid userId = ModletStream.GetContent<Actions, Guid>(stream);
-            if (userId == Guid.Empty)
-            {
-                return null;
-            }
-
-            Map[] maps = [.. dmc.Maps.Where(x => x.User != null && x.User.Id == userId)];
-            return ModletStream.CreatePacket(true, maps);
-        }
-
-        private static byte[]? OnLocalServerAction_CheckIfNameExists(DndModContext dmc, byte[]? stream)
-        {
-            Tuple<Guid, string>? tuple = ModletStream.GetContent<Actions, Tuple<Guid, string>>(stream);
-            if (tuple == null)
-            {
-                return null;
-            }
-
-            Guid userId = tuple.Item1;
-            if (userId == Guid.Empty)
-            {
-                return null;
-            }
-
-            string name = tuple.Item2;
-            Map? map = dmc.Maps.Where(x => x.User != null && x.User.Id == userId && x.Name == name).FirstOrDefault();
-
-            return ModletStream.CreatePacket(true, map);
-        }
-
-        private static byte[]? OnLocalServerAction_CreateMap(DndModContext dmc, SharedModContext smc, byte[]? stream)
-        {
-            Tuple<Guid, string>? tuple = ModletStream.GetContent<Actions, Tuple<Guid, string>>(stream);
-            if (tuple == null)
-            {
-                return null;
-            }
-
-            Guid userId = tuple.Item1;
-            if (userId == Guid.Empty)
-            {
-                return null;
-            }
-
-            User? user = smc.Users.FirstOrDefault(x => x.Id == userId);
-            if (user == null)
-            {
-                return null;
-            }
-            dmc.Attach(user);
-
-            string name = tuple.Item2;
-            Map map = new()
-            {
-                Name = name,
-                User = user
-            };
-
-            dmc.Add(map);
-            dmc.SaveChanges();
-
-            return ModletStream.CreatePacket(true, map);
         }
         #endregion //Private Methods
 
