@@ -160,11 +160,9 @@ namespace UT.Dnd.Modules.Mapping
                 return;
             }
 
-            if (
-                Session != null &&
-                Session.TryGetValue("User-Authentication", out object? value) &&
-                value is User user
-            )
+            User? user = AuthenticatedUser();
+
+            if (Session != null && user != null)
             {
                 Map[]? maps = Request<Map[], Efc.DataHandler.DndActions, Guid>(Efc.DataHandler.DndActions.ListMapsByUserId, user.Id);
                 if (maps != null)
@@ -186,16 +184,19 @@ namespace UT.Dnd.Modules.Mapping
             validator.Add(tabPage_add_vtb_name);
             validator.Validate();
 
-            if (
-                validator.IsValid &&
-                Session != null &&
-                Session.TryGetValue("User-Authentication", out object? value) &&
-                value is User user
-            )
+            User? user = AuthenticatedUser();
+
+            if (validator.IsValid && user != null)
             {
                 Tuple<Guid, string> data = new(user.Id, tabPage_add_vtb_name.Control.Text);
                 Map? map = Request<Map, Efc.DataHandler.DndActions, Tuple<Guid, string>>(Efc.DataHandler.DndActions.SelectMapByNameAndUserId, data);
-                map ??= Request<Map, Efc.DataHandler.DndActions, Tuple<Guid, string>>(Efc.DataHandler.DndActions.CreateMapByNameAndUserId, data);
+                if(map != null)
+                {
+                    MessageBox.Show("name \"" + data.Item2 + "\" already exists.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return;
+                }
+
+                map = Request<Map, Efc.DataHandler.DndActions, Tuple<Guid, string>>(Efc.DataHandler.DndActions.CreateMapByNameAndUserId, data);
                 if (map != null)
                 {
                     SetState(States.List);
